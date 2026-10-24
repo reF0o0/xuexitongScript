@@ -18,7 +18,10 @@ function createSectionNavigation({root, core, isActive, onStatus, onVideo, onFal
     function start() {
         if (!isActive() || pending) return;
         const nodes = [...root.querySelectorAll('#coursetree .posCatalog_select:not(.firstLayer)')]
-            .filter(el => el.querySelector('.posCatalog_name') && !el.querySelector('.posCatalog_select'));
+            .filter(el => el.querySelector('.posCatalog_name') && !el.querySelector('.posCatalog_select'))
+            // Chaoxing puts a group's UL next to its heading, inside the same LI.
+            .filter(el => !el.nextElementSibling?.matches('ul') ||
+                !el.nextElementSibling.querySelector('.posCatalog_select'));
         const index = nodes.findIndex(el => el.id === `cur${chapterId()}`) >= 0
             ? nodes.findIndex(el => el.id === `cur${chapterId()}`)
             : nodes.findIndex(el => el.classList.contains('posCatalog_active'));

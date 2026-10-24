@@ -23,7 +23,7 @@ player = replaceOnce(player, '                        this._isPlaying = false;\n
                         this._isPlaying = false;
                         this._clearCheckInterval();
                         if (this.configs.autoAdvanceNoVideo)`);
-player = replaceOnce(player, '// @version      3.3.0', '// @version      3.4.4');
+player = replaceOnce(player, '// @version      3.3.0', '// @version      3.4.5');
 player = replaceOnce(player, '// @description  自动播放、自动切换下一节，并在页面结构异常时安全停止', '// @description  自动播放与换节，DeepSeek 识题填答，可切换自动提交');
 player = replaceOnce(player, '// @grant        none', '// @grant        none\n// @noframes');
 player = replaceOnce(player, '            run() {', `            run() {
@@ -83,6 +83,17 @@ player = replaceOnce(player, '            _advanceChapterTest() {', `           
                     return;
                 }`);
 player = replaceOnce(player, "                        for (const frame of $('iframe').toArray()) {", "                        for (const frame of $('iframe').toArray()) {\n                            try { const owner = new URL(frame.src, location.href).searchParams.get('knowledgeid'); if (owner && owner !== new URL(location.href).searchParams.get('chapterId')) continue; } catch (_) {}");
+player = replaceOnce(player, '            _getVideoEl() {', `            _getVideoEl() {
+                const review = window.__xuexitongDeepSeekReview;
+                if (review?.findVideo) {
+                    const current = review.findVideo();
+                    if (current !== this._videoEl) {
+                        this._detachVideoEvents();
+                        this._videoEl = current;
+                    }
+                    if (current) this._videoEventHandle();
+                    return current;
+                }`);
 const core = readFileSync(resolve(root, 'quiz-core.cjs'), 'utf8').replace('module.exports = createQuizCore();', '');
 const submission = readFileSync(resolve(root, 'submit-helper.cjs'), 'utf8').replace('module.exports = createSubmissionHelper;', '');
 const flow = readFileSync(resolve(root, 'learning-flow.cjs'), 'utf8').replace('module.exports = createLearningFlow;', '');

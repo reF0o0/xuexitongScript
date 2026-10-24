@@ -19,6 +19,7 @@ const docs=w.document.querySelector('#cards').contentDocument;
 docs.body.innerHTML='<iframe id="video-frame" class="ans-insertvideo-online"></iframe>';
 const videoDoc=docs.querySelector('iframe').contentDocument;
 videoDoc.body.innerHTML='<video id="video_html5_api"></video>';
+for(const doc of [docs,videoDoc]) doc.defaultView.Element.prototype.getClientRects=()=>[{width:100,height:20}];
 const video=videoDoc.querySelector('video');
 Object.defineProperty(video,'ended',{get:()=>ended});
 video.play=()=>{plays++;video.dispatchEvent(new w.Event('play'));return scenario.startsWith('play-') && plays===1 ? pendingPlay : Promise.resolve();};video.pause=()=>{};
@@ -46,7 +47,19 @@ w.eval(compiled);
 try {
  const boot=[...intervals.values()].find(t=>t.ms===1000);assert.ok(boot);boot.fn();await sleep(20);
  assert.equal(plays,1,'Initial video must autoplay');
- if(scenario.startsWith('play-')) {
+ if(scenario==='iframe-replaced') {
+  // A retired iframe document can keep connected video nodes even after navigation.
+  const retired=w.document.implementation.createHTMLDocument('retired');
+  const stale=retired.createElement('video');stale.id='video_html5_api';retired.body.appendChild(stale);
+  stale.play=()=>Promise.resolve();stale.pause=()=>{};
+  assert.equal(stale.isConnected,true);
+  const app=w.__xuexitongPlayerV3;app._videoEl=stale;app._videoEventHandle();
+  assert.equal(app._getVideoEl(),video,'Player must reacquire the current reachable video instead of a cached retired document');
+  assert.equal(app._eventVideoEl,video,'End handlers must follow the live video');
+  ended=true;video.dispatchEvent(new w.Event('ended'));await sleep(1100);
+  assert.equal(opened,1,'The actual visible video end must open the quiz after iframe replacement');
+  console.log('PASS: iframe replacement refreshes cached video and end handlers');
+ }else if(scenario.startsWith('play-')) {
   quizTab.click();w.__xuexitongDeepSeekReview.scan();
   if(scenario==='play-success')resolvePlay();else rejectPlay(new Error('The play() request was interrupted by pause()'));await sleep(30);
   assert.equal(plays,1,'A late AbortError must not restart cached video on the quiz tab');

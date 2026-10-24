@@ -29,4 +29,11 @@ function setup(){
  const p=setup();p.nav.start();p.w.history.replaceState({},'', '?chapterId=102');p.tick();
  p.w.history.replaceState({},'', '?chapterId=101');p.tick(10000);assert.equal(p.clicks,1,'Returning to source after arrival cancels navigation');p.close();
 }
+{
+ const p=setup();const doc=p.w.document;let headers=0,lessons=0;
+ doc.querySelector('#coursetree').innerHTML='<ul><li><div class="posCatalog_select posCatalog_active" id="cur101"><span class="posCatalog_name">Previous</span></div></li><li><div class="posCatalog_select" id="cur200"><span class="posCatalog_name">Group</span></div><ul><li><div class="posCatalog_select" id="cur201"><span class="posCatalog_name">First lesson</span></div></li></ul></li></ul>';
+ doc.querySelector('#cur200 .posCatalog_name').onclick=()=>headers++;
+ doc.querySelector('#cur201 .posCatalog_name').onclick=()=>lessons++;
+ p.nav.start();assert.equal(headers,0,'A group heading with a sibling UL must not be selected as the next lesson');assert.equal(lessons,1);p.close();
+}
 console.log('PASS: failed click retries same target, waits for destination video, stop/manual navigation cancel, retries bounded');

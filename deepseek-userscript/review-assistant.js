@@ -72,6 +72,11 @@
             if (app) { app._videoEl = null; app.play(); }
         },
     });
+    state.findVideo = () => {
+        const videos = core.documents(document).flatMap(doc =>
+            [...doc.querySelectorAll('video#video_html5_api, video[id*="video_html5"]')]).filter(core.visible);
+        return videos.find(video => video.readyState > 0) || videos[0] || null;
+    };
     state.beforeNext = flow.beforeNext; state.isQuizPage = flow.isQuizPage; state.stepTitle = flow.stepTitle;
     function start() {
         if (state.active) return;
